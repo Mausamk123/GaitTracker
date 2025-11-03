@@ -40,13 +40,34 @@ class FileManager {
     }
   }
 
+  // Generate a unique filename in the target directory
+  Future<String> _getUniqueFilename(Directory localDir, String originalFileName) async {
+    String baseName = path.basenameWithoutExtension(originalFileName);
+    String extension = path.extension(originalFileName);
+    String targetPath = path.join(localDir.path, originalFileName);
+    int counter = 1;
+
+    // Keep trying new filenames until we find one that doesn't exist
+    while (await File(targetPath).exists()) {
+      String newFileName = '$baseName($counter)$extension';
+      targetPath = path.join(localDir.path, newFileName);
+      counter++;
+    }
+
+    return targetPath;
+  }
+
   // Copy file to local storage
   Future<String?> copyFileToLocal(File sourceFile) async {
     try {
       final localDir = await _localDirectory;
       final fileName = path.basename(sourceFile.path);
-      final localFile = File(path.join(localDir.path, fileName));
+      
+      // Get a unique filename for the destination
+      final uniquePath = await _getUniqueFilename(localDir, fileName);
+      final localFile = File(uniquePath);
 
+      // Copy the file with the unique name
       await sourceFile.copy(localFile.path);
       return localFile.path;
     } catch (e) {

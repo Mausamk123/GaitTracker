@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'database_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final int patientId;
+  final int? patientId;
+  final String? fileName;
+  final String? filePath;
 
-  const ProfileScreen({super.key, this.patientId = 1});
+  const ProfileScreen({super.key, this.patientId, this.fileName, this.filePath});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -23,28 +25,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadPatientData() async {
     if (kIsWeb) {
-      // Use default data for web
+      // Use empty data for web
       setState(() {
         _patientData = {
-          'name': 'Dhwani Joshi',
-          'age': 38,
-          'gender': 'Female',
-          'phone': '(+91) 9876542310',
-          'email': 'dhwanijoshi193@gmail.com',
-          'address': '1234 Main St, Springfield, IL',
-          'diagnosis': 'ACL Tear (Right Knee)',
-          'date_of_injury': '12/07/2024',
-          'medical_history': 'Hypertension (under control)',
-          'medications': 'Ibuprofen 400mg',
+          'name': '',
+          'age': null,
+          'gender': '',
+          'phone': '',
+          'email': '',
+          'address': '',
+          'diagnosis': '',
+          'date_of_injury': '',
+          'medical_history': '',
+          'medications': '',
+          'fileName': widget.fileName,
         };
         _isLoading = false;
       });
-    } else {
-      final patient = await DatabaseHelper.instance.getPatientById(
-        widget.patientId,
-      );
+      return;
+    }
+
+    if (widget.patientId != null) {
+      // Load existing patient data
+      final patient = await DatabaseHelper.instance.getPatientById(widget.patientId!);
       setState(() {
         _patientData = patient;
+        _isLoading = false;
+      });
+    } else if (widget.filePath != null || widget.fileName != null) {
+      // Prefer matching by filePath if available, otherwise fall back to fileName
+      final db = await DatabaseHelper.instance.database;
+      List<Map<String, Object?>> results = [];
+
+      if (widget.filePath != null) {
+        results = await db.query(
+          'patients',
+          where: 'filePath = ?',
+          whereArgs: [widget.filePath],
+        );
+      }
+
+      if (results.isEmpty && widget.fileName != null) {
+        results = await db.query(
+          'patients',
+          where: 'fileName = ?',
+          whereArgs: [widget.fileName],
+        );
+      }
+
+      setState(() {
+        if (results.isNotEmpty) {
+          _patientData = results.first;
+        } else {
+          // New patient with empty data
+          _patientData = {
+            'name': '',
+            'age': null,
+            'gender': '',
+            'phone': '',
+            'email': '',
+            'address': '',
+            'diagnosis': '',
+            'date_of_injury': '',
+            'medical_history': '',
+            'medications': '',
+            'fileName': widget.fileName,
+            'filePath': widget.filePath,
+          };
+        }
+        _isLoading = false;
+      });
+    } else {
+      // No patientId or fileName provided - show empty form
+      setState(() {
+        _patientData = {
+          'name': '',
+          'age': null,
+          'gender': '',
+          'phone': '',
+          'email': '',
+          'address': '',
+          'diagnosis': '',
+          'date_of_injury': '',
+          'medical_history': '',
+          'medications': '',
+        };
         _isLoading = false;
       });
     }
@@ -65,15 +130,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
-    } else {
-      await DatabaseHelper.instance.updatePatient(
-        widget.patientId,
-        updatedData,
-      );
+      return;
+    }
+
+    final dbHelper = DatabaseHelper.instance;
+    
+    try {
+      if (widget.fileName != null) {
+        // Add fileName to data for new patients
+        updatedData['fileName'] = widget.fileName;
+      }
+      if (widget.filePath != null) {
+        // Also include filePath for unique matching
+        updatedData['filePath'] = widget.filePath;
+      }
+
+      if (widget.patientId != null) {
+        // Update existing patient
+        await dbHelper.updatePatient(widget.patientId!, updatedData);
+      } else {
+        // Insert new patient
+        await dbHelper.upsertPatientWithFile(updatedData);
+      }
+
       await _loadPatientData();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
+        );
+        // Return to previous screen after saving
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: $e')),
         );
       }
     }
@@ -198,17 +290,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final patient = _patientData ?? {};
-    final name = patient['name'] ?? 'Dhwani Joshi';
-    final age = patient['age'] ?? 38;
-    final gender = patient['gender'] ?? 'Female';
-    final phone = patient['phone'] ?? '(+91) 9876542310';
-    final email = patient['email'] ?? 'dhwanijoshi193@gmail.com';
-    final address = patient['address'] ?? '1234 Main St, Springfield, IL';
-    final diagnosis = patient['diagnosis'] ?? 'ACL Tear (Right Knee)';
-    final dateOfInjury = patient['date_of_injury'] ?? '12/07/2024';
-    final medicalHistory =
-        patient['medical_history'] ?? 'Hypertension (under control)';
-    final medications = patient['medications'] ?? 'Ibuprofen 400mg';
+    final name = patient['name'] ?? '';
+    final age = patient['age'];
+    final gender = patient['gender'] ?? '';
+    final phone = patient['phone'] ?? '';
+    final email = patient['email'] ?? '';
+    final address = patient['address'] ?? '';
+    final diagnosis = patient['diagnosis'] ?? '';
+    final dateOfInjury = patient['date_of_injury'] ?? '';
+    final medicalHistory = patient['medical_history'] ?? '';
+    final medications = patient['medications'] ?? '';
+    
+    // Show edit dialog immediately if no data is present
+    if (widget.patientId == null && 
+        widget.fileName != null && 
+        name.isEmpty && 
+        !_isLoading) {
+      // Use Future.delayed to avoid calling setState during build
+      Future.delayed(Duration.zero, _showEditProfileDialog);
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -391,31 +491,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        child: BottomNavigationBar(
-          currentIndex: 1,
-          onTap: (index) {
-            if (index == 0) {
-              Navigator.pop(context);
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: '',
-            ),
-          ],
-          backgroundColor: const Color(0xFF73D1F6),
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white70,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          type: BottomNavigationBarType.fixed,
-        ),
-      ),
     );
+    
   }
 
   Widget _buildContactItem(String label, String value) {

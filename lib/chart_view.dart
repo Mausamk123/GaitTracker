@@ -6,8 +6,13 @@ import 'package:fl_chart/fl_chart.dart';
 class GaitPhaseData {
   final double stancePercentage;
   final double swingPercentage;
+  final double cadence;
 
-  GaitPhaseData({required this.stancePercentage, required this.swingPercentage});
+  GaitPhaseData({
+    required this.stancePercentage, 
+    required this.swingPercentage,
+    required this.cadence,
+  });
 }
 
 class ChartView extends StatelessWidget {
@@ -49,6 +54,28 @@ class ChartView extends StatelessWidget {
                   _buildLegendItem('Stance Phase', const Color(0xFF1E3A8A)),
                   const SizedBox(width: 24),
                   _buildLegendItem('Swing Phase', const Color(0xFF73D1F6)),
+                ],
+              ),
+              const SizedBox(height: 32),
+              // Cadence Section
+              Column(
+                children: [
+                  const Text(
+                    'Cadence',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${data.cadence.toStringAsFixed(2)} steps/min',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ],
               ),
             ],
