@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:path/path.dart' as path;
 
 /// Simple data holder for gait phase percentages
 class GaitPhaseData {
@@ -9,7 +10,7 @@ class GaitPhaseData {
   final double cadence;
 
   GaitPhaseData({
-    required this.stancePercentage, 
+    required this.stancePercentage,
     required this.swingPercentage,
     required this.cadence,
   });
@@ -27,8 +28,11 @@ class ChartView extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          file.path.split('/').last,
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+          path.basename(file.path),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
       ),
@@ -71,10 +75,7 @@ class ChartView extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     '${data.cadence.toStringAsFixed(2)} steps/min',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
                   ),
                 ],
               ),
@@ -97,7 +98,11 @@ class ChartView extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -116,14 +121,22 @@ class PhasePieChart extends StatelessWidget {
         value: data.stancePercentage,
         title: '${data.stancePercentage.toStringAsFixed(1)}%',
         radius: 80,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+        titleStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
       PieChartSectionData(
         color: const Color(0xFF73D1F6), // swing - light blue
         value: data.swingPercentage,
         title: '${data.swingPercentage.toStringAsFixed(1)}%',
         radius: 80,
-        titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+        titleStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
     ];
   }

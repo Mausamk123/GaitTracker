@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:gait_tracker/patient_list_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:math';
 import 'profile_screen.dart';
@@ -57,7 +59,7 @@ class GaitTrackerApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF73D1F6)),
         useMaterial3: true,
       ),
-      home: const PatientListScreen(),
+      home: const DashboardScreen(),
     );
   }
 }
@@ -67,19 +69,18 @@ class MyApp extends GaitTrackerApp {
   const MyApp({super.key});
 }
 
-class PatientListScreen extends StatefulWidget {
-  const PatientListScreen({super.key});
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  State<PatientListScreen> createState() => _PatientListScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _PatientListScreenState extends State<PatientListScreen> {
+class _DashboardScreenState extends State<DashboardScreen> {
   List<File> _importedFiles = [];
   // map from imported filename -> display name (patient name) to show on UI
   Map<String, String> _fileDisplayNames = {};
   bool _isLoadingFiles = false;
-
 
   @override
   void initState() {
@@ -205,78 +206,6 @@ class _PatientListScreenState extends State<PatientListScreen> {
     await _loadImportedFiles();
   }
 
-  Future<void> _showAllPatientsDialog() async {
-    if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patients database is not available on web')),
-      );
-      return;
-    }
-
-    try {
-      final dbHelper = DatabaseHelper.instance;
-      final all = await dbHelper.getAllPatients();
-
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('All Patients'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 400,
-            child: all.isEmpty
-                ? const Center(child: Text('No patients found'))
-                : ListView.separated(
-                    itemCount: all.length,
-                    separatorBuilder: (_, __) => const Divider(height: 16),
-                    itemBuilder: (context, index) {
-                      final p = all[index];
-                      final name = (p['name'] ?? 'Unknown') as String;
-                      final age = p['age']?.toString() ?? '-';
-                      final id = p['id']?.toString() ?? '-';
-                      return ListTile(
-                        dense: true,
-                        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text('Age: $age  •  ID: $id'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          final int? patientId = int.tryParse(id);
-                          if (patientId != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProfileScreen(patientId: patientId),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Invalid patient id')),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load patients: $e')),
-      );
-    }
-  }
-
   Future<void> _viewChart(File file) async {
     try {
       final content = await FileManager().readFileContent(file.path);
@@ -290,11 +219,14 @@ class _PatientListScreenState extends State<PatientListScreen> {
       // Analysis logic: compute swing vs stance based on gyro magnitude
       const double GYRO_MAGNITUDE_THRESHOLD = 50.0; // adjust if needed
 
-      final lines = content.split(RegExp(r'[\r\n]+')).where((l) => l.trim().isNotEmpty).toList();
+      final lines = content
+          .split(RegExp(r'[\r\n]+'))
+          .where((l) => l.trim().isNotEmpty)
+          .toList();
       if (lines.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File is empty')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('File is empty')));
         return;
       }
 
@@ -327,7 +259,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
           final double gy = double.parse(gyRaw);
           final double gz = double.parse(gzRaw);
 
-          final double gyroMagnitude = sqrt(pow(gx, 2) + pow(gy, 2) + pow(gz, 2));
+          final double gyroMagnitude = sqrt(
+            pow(gx, 2) + pow(gy, 2) + pow(gz, 2),
+          );
 
           if (gyroMagnitude > GYRO_MAGNITUDE_THRESHOLD) {
             if (!inSwing) {
@@ -355,23 +289,27 @@ class _PatientListScreenState extends State<PatientListScreen> {
       final double swingPct = (swingPoints / totalPoints) * 100.0;
       final double stancePct = 100.0 - swingPct;
 
-  // Calculate cadence (steps per minute)
-  final double timeInSeconds = lastTime - firstTime;
+      // Calculate cadence (steps per minute)
+      final double timeInSeconds = lastTime - firstTime;
       final double timeInMinutes = timeInSeconds / 60.0;
       final double cadence = stepCount / timeInMinutes;
 
       final gaitData = GaitPhaseData(
-        stancePercentage: stancePct, 
+        stancePercentage: stancePct,
         swingPercentage: swingPct,
         cadence: cadence,
       );
 
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChartView(file: file, data: gaitData)),
+        MaterialPageRoute(
+          builder: (context) => ChartView(file: file, data: gaitData),
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error reading file: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error reading file: $e')));
     }
   }
 
@@ -390,10 +328,18 @@ class _PatientListScreenState extends State<PatientListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reinitialize data'),
-        content: const Text('This will delete all imported files from local storage. This action cannot be undone. Continue?'),
+        content: const Text(
+          'This will delete all imported files from local storage. This action cannot be undone. Continue?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -418,19 +364,31 @@ class _PatientListScreenState extends State<PatientListScreen> {
         final db = await DatabaseHelper.instance.database;
         int patientsDeleted = 0;
         for (final p in deletedPaths) {
-          patientsDeleted += await db.delete('patients', where: 'filePath = ?', whereArgs: [p]);
+          patientsDeleted += await db.delete(
+            'patients',
+            where: 'filePath = ?',
+            whereArgs: [p],
+          );
         }
 
         await _loadImportedFiles();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Reinitialized: deleted $deleted file(s) and $patientsDeleted patient record(s)')),
+          SnackBar(
+            content: Text(
+              'Reinitialized: deleted $deleted file(s) and $patientsDeleted patient record(s)',
+            ),
+          ),
         );
       } catch (e) {
         // If DB delete fails, still reload files and inform user
         await _loadImportedFiles();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Reinitialized: deleted $deleted file(s). Failed to remove patient records: $e')),
+          SnackBar(
+            content: Text(
+              'Reinitialized: deleted $deleted file(s). Failed to remove patient records: $e',
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -442,48 +400,69 @@ class _PatientListScreenState extends State<PatientListScreen> {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Image.asset('assets/images/Logo.png', width: 20, height: 20),
-        leadingWidth: 50,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Image.asset('assets/images/Logo.png', fit: BoxFit.contain),
+          ),
+        ),
+        leadingWidth: 90,
         title: Text(
           'GaitTracker',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+          style: GoogleFonts.secularOne(
+            color: Colors.black,
+            fontWeight: FontWeight.w400,
+            fontSize: 24,
+          ),
         ),
         backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Small debug marker to verify UI is rendering on device
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Patient List',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              if (_importedFiles.isNotEmpty) ...[
+                Text(
+                  'Imported Files',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  flex: 2,
+                  child: ListView.builder(
+                    itemCount: _importedFiles.length,
+                    itemBuilder: (context, index) {
+                      final file = _importedFiles[index];
+                      final basename = file.path.split('/').last;
+                      final displayName =
+                          _fileDisplayNames[file.path] ??
+                          _fileDisplayNames[basename];
+                      return ImportedFileCard(
+                        file: file,
+                        displayName: displayName,
+                        onEdit: () => _editFile(file),
+                        onChart: () => _viewChart(file),
+                        onDelete: () => _deleteFile(file),
+                      );
+                    },
                   ),
-                  Text(
-                    _isLoadingFiles ? 'Loading...' : 'Ready',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ),
-            // Import Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: SizedBox(
+                ),
+              ],
+              // Small debug marker to verify UI is rendering on device
+              // Import Button
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoadingFiles ? null : _importFiles,
@@ -507,82 +486,58 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   ),
                 ),
               ),
-            ),
-            // Imported Files Section
-            if (_importedFiles.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                child: Text(
-                  'Imported Files',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              // Imported Files Section
+              // Patients Section
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoadingFiles
+                      ? null
+                      : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return PatientListScreen();
+                            },
+                          ),
+                        ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF73D1F6),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Show all patients'),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: _importedFiles.length,
-                  itemBuilder: (context, index) {
-                    final file = _importedFiles[index];
-                    final basename = file.path.split('/').last;
-                    final displayName = _fileDisplayNames[file.path] ?? _fileDisplayNames[basename];
-                    return ImportedFileCard(
-                      file: file,
-                      displayName: displayName,
-                      onEdit: () => _editFile(file),
-                      onChart: () => _viewChart(file),
-                      onDelete: () => _deleteFile(file),
-                    );
-                  },
+              const SizedBox(height: 20),
+              // Reinitialize data button - deletes all imported files from local storage
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoadingFiles ? null : _reinitializeData,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Reinitialize data'),
                 ),
               ),
             ],
-            // Patients Section
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                    child: ElevatedButton(
-                      onPressed: _showAllPatientsDialog,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF73D1F6),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Show all patients'),
-                    ),
-                  ),
-                  // Reinitialize data button - deletes all imported files from local storage
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoadingFiles ? null : _reinitializeData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Reinitialize data'),
-                      ),
-                    ),
-                  ),
-                  
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       // Removed bottomNavigationBar since only one item remains
@@ -729,8 +684,8 @@ class ImportedFileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  final fileName = file.path.split('/').last;
-  final shownName = displayName ?? fileName;
+    final fileName = file.path.split('/').last;
+    final shownName = displayName ?? fileName;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),

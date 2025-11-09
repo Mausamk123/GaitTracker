@@ -7,7 +7,12 @@ class ProfileScreen extends StatefulWidget {
   final String? fileName;
   final String? filePath;
 
-  const ProfileScreen({super.key, this.patientId, this.fileName, this.filePath});
+  const ProfileScreen({
+    super.key,
+    this.patientId,
+    this.fileName,
+    this.filePath,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -32,12 +37,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'age': null,
           'gender': '',
           'phone': '',
-          'email': '',
-          'address': '',
-          'diagnosis': '',
+
           'date_of_injury': '',
-          'medical_history': '',
-          'medications': '',
+
           'fileName': widget.fileName,
         };
         _isLoading = false;
@@ -47,7 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (widget.patientId != null) {
       // Load existing patient data
-      final patient = await DatabaseHelper.instance.getPatientById(widget.patientId!);
+      final patient = await DatabaseHelper.instance.getPatientById(
+        widget.patientId!,
+      );
       setState(() {
         _patientData = patient;
         _isLoading = false;
@@ -83,12 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'age': null,
             'gender': '',
             'phone': '',
-            'email': '',
-            'address': '',
-            'diagnosis': '',
             'date_of_injury': '',
-            'medical_history': '',
-            'medications': '',
             'fileName': widget.fileName,
             'filePath': widget.filePath,
           };
@@ -103,12 +102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'age': null,
           'gender': '',
           'phone': '',
-          'email': '',
-          'address': '',
-          'diagnosis': '',
+
           'date_of_injury': '',
-          'medical_history': '',
-          'medications': '',
         };
         _isLoading = false;
       });
@@ -134,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final dbHelper = DatabaseHelper.instance;
-    
+
     try {
       if (widget.fileName != null) {
         // Add fileName to data for new patients
@@ -154,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       await _loadPatientData();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
@@ -164,9 +159,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
       }
     }
   }
@@ -184,23 +179,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final phoneController = TextEditingController(
       text: _patientData?['phone'] ?? '',
     );
-    final emailController = TextEditingController(
-      text: _patientData?['email'] ?? '',
-    );
-    final addressController = TextEditingController(
-      text: _patientData?['address'] ?? '',
-    );
-    final diagnosisController = TextEditingController(
-      text: _patientData?['diagnosis'] ?? '',
-    );
     final dateOfInjuryController = TextEditingController(
       text: _patientData?['date_of_injury'] ?? '',
-    );
-    final medicalHistoryController = TextEditingController(
-      text: _patientData?['medical_history'] ?? '',
-    );
-    final medicationsController = TextEditingController(
-      text: _patientData?['medications'] ?? '',
     );
 
     showDialog(
@@ -228,29 +208,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: phoneController,
                 decoration: const InputDecoration(labelText: 'Phone'),
               ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
-              ),
-              TextField(
-                controller: diagnosisController,
-                decoration: const InputDecoration(labelText: 'Diagnosis'),
-              ),
+
               TextField(
                 controller: dateOfInjuryController,
                 decoration: const InputDecoration(labelText: 'Date of Injury'),
-              ),
-              TextField(
-                controller: medicalHistoryController,
-                decoration: const InputDecoration(labelText: 'Medical History'),
-              ),
-              TextField(
-                controller: medicationsController,
-                decoration: const InputDecoration(labelText: 'Medications'),
               ),
             ],
           ),
@@ -267,12 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 'age': int.tryParse(ageController.text) ?? 0,
                 'gender': genderController.text,
                 'phone': phoneController.text,
-                'email': emailController.text,
-                'address': addressController.text,
-                'diagnosis': diagnosisController.text,
                 'date_of_injury': dateOfInjuryController.text,
-                'medical_history': medicalHistoryController.text,
-                'medications': medicationsController.text,
               });
               Navigator.pop(context);
             },
@@ -294,17 +250,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final age = patient['age'];
     final gender = patient['gender'] ?? '';
     final phone = patient['phone'] ?? '';
-    final email = patient['email'] ?? '';
-    final address = patient['address'] ?? '';
-    final diagnosis = patient['diagnosis'] ?? '';
     final dateOfInjury = patient['date_of_injury'] ?? '';
-    final medicalHistory = patient['medical_history'] ?? '';
-    final medications = patient['medications'] ?? '';
-    
+
     // Show edit dialog immediately if no data is present
-    if (widget.patientId == null && 
-        widget.fileName != null && 
-        name.isEmpty && 
+    if (widget.patientId == null &&
+        widget.fileName != null &&
+        name.isEmpty &&
         !_isLoading) {
       // Use Future.delayed to avoid calling setState during build
       Future.delayed(Duration.zero, _showEditProfileDialog);
@@ -393,14 +344,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Contact Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -413,9 +356,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _buildContactItem('Phone:', phone),
                         const SizedBox(height: 8),
-                        _buildContactItem('Email:', email),
-                        const SizedBox(height: 8),
-                        _buildContactItem('Address:', address),
                       ],
                     ),
                   ),
@@ -431,14 +371,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Medical Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -449,13 +381,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildContactItem('Diagnosis:', diagnosis),
-                        const SizedBox(height: 8),
                         _buildContactItem('Date of Injury:', dateOfInjury),
                         const SizedBox(height: 8),
-                        _buildContactItem('Medical History:', medicalHistory),
-                        const SizedBox(height: 8),
-                        _buildContactItem('Medications:', medications),
                       ],
                     ),
                   ),
@@ -492,7 +419,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-    
   }
 
   Widget _buildContactItem(String label, String value) {
