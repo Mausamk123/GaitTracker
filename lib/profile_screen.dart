@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'database_helper.dart';
+import 'edit_profile_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? patientId;
@@ -154,8 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-        // Return to previous screen after saving
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -167,76 +167,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditProfileDialog() {
-    final nameController = TextEditingController(
-      text: _patientData?['name'] ?? '',
-    );
-    final ageController = TextEditingController(
-      text: (_patientData?['age'] ?? '').toString(),
-    );
-    final genderController = TextEditingController(
-      text: _patientData?['gender'] ?? '',
-    );
-    final phoneController = TextEditingController(
-      text: _patientData?['phone'] ?? '',
-    );
-    final dateOfInjuryController = TextEditingController(
-      text: _patientData?['date_of_injury'] ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: ageController,
-                decoration: const InputDecoration(labelText: 'Age'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: genderController,
-                decoration: const InputDecoration(labelText: 'Gender'),
-              ),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Phone'),
-              ),
-
-              TextField(
-                controller: dateOfInjuryController,
-                decoration: const InputDecoration(labelText: 'Date of Injury'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _updatePatientData({
-                'name': nameController.text,
-                'age': int.tryParse(ageController.text) ?? 0,
-                'gender': genderController.text,
-                'phone': phoneController.text,
-                'date_of_injury': dateOfInjuryController.text,
-              });
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(
+          patientData: _patientData,
+          patientId: widget.patientId,
+          fileName: widget.fileName,
+          filePath: widget.filePath,
+          onSave: (updatedData) async {
+            await _updatePatientData(updatedData);
+            if (mounted) {
               Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+            }
+          },
+        ),
       ),
-    );
+    ).then((_) {
+      // Reload data when returning from edit screen
+      _loadPatientData();
+    });
   }
 
   @override
@@ -252,7 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final phone = patient['phone'] ?? '';
     final dateOfInjury = patient['date_of_injury'] ?? '';
 
-    // Show edit dialog immediately if no data is present
+    // Show edit screen immediately if no data is present
     if (widget.patientId == null &&
         widget.fileName != null &&
         name.isEmpty &&
@@ -265,184 +215,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          name,
-          style: const TextStyle(
+          'Profile',
+          style: GoogleFonts.secularOne(
             color: Colors.black,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w400,
+            fontSize: 24,
           ),
         ),
         backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.black),
+            onPressed: _showEditProfileDialog,
+            tooltip: 'Edit Profile',
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.redAccent),
+            onPressed: _confirmAndDeletePatient,
+            tooltip: 'Delete Patient',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Summary Section
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Image.network(
-                      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=256&q=80&auto=format&fit=crop&ixlib=rb-4.0.3',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Age: $age',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Gender: $gender',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Contact Details Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildContactItem('Phone:', phone),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Medical Details Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildContactItem('Date of Injury:', dateOfInjury),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Edit Profile Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 37, 143, 185),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: _showEditProfileDialog,
-                  child: const Text(
-                    'Edit Profile',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              // Profile icon (image removed)
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
+                child: const Icon(
+                  Icons.person,
+                  size: 48,
+                  color: Colors.black87,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              // Name
+              Text(
+                name.isEmpty ? 'No Name' : name,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Profile Information
+              _buildInfoRow('Age', age != null ? age.toString() : 'Not set'),
+              const SizedBox(height: 20),
+              _buildInfoRow('Phone Number', phone.isEmpty ? 'Not set' : phone),
+              const SizedBox(height: 20),
+              _buildInfoRow('Gender', gender.isEmpty ? 'Not set' : gender),
+              const SizedBox(height: 20),
+              _buildInfoRow(
+                'Date of Injury',
+                dateOfInjury.isEmpty ? 'Not set' : dateOfInjury,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContactItem(String label, String value) {
+  Widget _buildInfoRow(String label, String value) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-          ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, color: Colors.black54),
         ),
       ],
     );
+  }
+
+  Future<void> _confirmAndDeletePatient() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete patient'),
+        content: const Text(
+          'This will permanently delete the patient and all related sessions and data. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (kIsWeb) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Delete is not supported on web.')),
+        );
+      }
+      return;
+    }
+
+    try {
+      final db = DatabaseHelper.instance;
+      if (widget.patientId != null) {
+        await db.deletePatientById(widget.patientId!);
+      } else if (widget.filePath != null) {
+        await db.deletePatientByFilePath(widget.filePath!);
+      } else if (widget.fileName != null) {
+        await db.deletePatientByFileName(widget.fileName!);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Patient deleted')));
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete patient: $e')));
+      }
+    }
   }
 }

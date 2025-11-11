@@ -3,6 +3,7 @@ import 'package:gait_tracker/chart_view.dart';
 import 'profile_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:io';
+import 'package:google_fonts/google_fonts.dart';
 
 class SessionDetailsScreen extends StatefulWidget {
   const SessionDetailsScreen({super.key});
@@ -63,14 +64,6 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       timeTaken: 45,
       fileName: 'Session6_21-02-2004.txt',
     ),
-    SessionData(
-      sessionNumber: 7,
-      date: '21-03-2004',
-      speed: 1.6,
-      steps: 220,
-      timeTaken: 50,
-      fileName: 'Session7_21-03-2004.txt',
-    ),
   ];
 
   // Helper method to create GaitPhaseData from SessionData
@@ -100,98 +93,229 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       appBar: AppBar(
         title: Text(
           'Dhwani Joshi',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+          style: GoogleFonts.secularOne(
+            color: Colors.black,
+            fontWeight: FontWeight.w400,
+            fontSize: 24,
+          ),
         ),
         backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
         actions: [
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.person, color: Colors.black),
+            onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
-            child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=256&q=80&auto=format&fit=crop&ixlib=rb-4.0.3',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
           ),
         ],
+        actionsPadding: EdgeInsets.only(right: 10),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Steps Chart Section
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: StepsBarChart(sessions: _sessions),
-            ),
-            // Session List Section
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _sessions.length,
-                itemBuilder: (context, index) {
-                  final session = _sessions[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        'Session ${session.sessionNumber}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Date: ${session.date}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Color(0xFF73D1F6),
-                        size: 16,
-                      ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              SwipeableCharts(sessions: _sessions),
+              // Action Buttons
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
                       onTap: () {
-                        // Create a File object for the session
-                        // The file path is used only for display in ChartView
-                        final file = File(session.fileName);
-                        final gaitData = _createGaitDataFromSession(session);
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ChartView(file: file, data: gaitData),
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Starting data collection...'),
                           ),
                         );
                       },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color.fromRGBO(17, 75, 95, 1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        height: 60,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 5),
+                            const Flexible(
+                              child: Text(
+                                'Start data collection',
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Add New Session...')),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color.fromRGBO(17, 75, 95, 1),
+                          ),
+                        ),
+                        height: 60,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.add,
+                              color: Color.fromRGBO(17, 75, 95, 1),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 5),
+                            const Flexible(
+                              child: Text(
+                                'Add New Session',
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color.fromRGBO(17, 75, 95, 1),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Importing Data...')),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF73D1F6)),
+                        ),
+                        height: 60,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.download,
+                              color: Color(0xFF73D1F6),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Flexible(
+                              child: Text(
+                                'Import Data',
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF73D1F6),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              // Session List Section
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _sessions.length,
+                  itemBuilder: (context, index) {
+                    final session = _sessions[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(27, 0, 0, 0),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          'Session ${session.sessionNumber}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Date: ${session.date}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color(0xFF73D1F6),
+                          size: 16,
+                        ),
+                        onTap: () {
+                          // Create a File object for the session
+                          // The file path is used only for display in ChartView
+                          final file = File(session.fileName);
+                          final gaitData = _createGaitDataFromSession(session);
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChartView(file: file, data: gaitData),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -216,17 +340,24 @@ class SessionData {
   });
 }
 
-class StepsBarChart extends StatefulWidget {
+class SwipeableCharts extends StatefulWidget {
   final List<SessionData> sessions;
 
-  const StepsBarChart({super.key, required this.sessions});
+  const SwipeableCharts({super.key, required this.sessions});
 
   @override
-  State<StepsBarChart> createState() => _StepsBarChartState();
+  State<SwipeableCharts> createState() => _SwipeableChartsState();
 }
 
-class _StepsBarChartState extends State<StepsBarChart> {
-  int? touchedIndex;
+class _SwipeableChartsState extends State<SwipeableCharts> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,122 +377,324 @@ class _StepsBarChartState extends State<StepsBarChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Steps',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 250,
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY:
-                    widget.sessions
-                        .map((s) => s.steps.toDouble())
-                        .reduce((a, b) => a > b ? a : b) *
-                    1.2,
-                barTouchData: BarTouchData(
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final session = widget.sessions[groupIndex];
-                      return BarTooltipItem(
-                        'Steps: ${session.steps}\nTime Taken: ${session.timeTaken} min',
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      );
-                    },
-                  ),
-                  touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    setState(() {
-                      if (!event.isInterestedForInteractions ||
-                          barTouchResponse == null ||
-                          barTouchResponse.spot == null) {
-                        touchedIndex = null;
-                        return;
-                      }
-                      touchedIndex =
-                          barTouchResponse.spot!.touchedBarGroupIndex;
-                    });
-                  },
+          // Title and Page Indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _getChartTitle(_currentPage),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (double value, TitleMeta meta) {
-                        final index = value.toInt();
-                        if (index >= 0 && index < widget.sessions.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'Session${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 6,
-                              ),
-                            ),
-                          );
-                        }
-                        return const Text('');
-                      },
-                      reservedSize: 40,
-                    ),
-                  ),
-                  leftTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                barGroups: widget.sessions.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final session = entry.value;
-
-                  return BarChartGroupData(
-                    x: index,
-                    barRods: [
-                      BarChartRodData(
-                        toY: session.steps.toDouble(),
-                        color: const Color(0xFF73D1F6),
-                        width: 20,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          topRight: Radius.circular(8),
-                        ),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY:
-                              widget.sessions
-                                  .map((s) => s.steps.toDouble())
-                                  .reduce((a, b) => a > b ? a : b) *
-                              1.2,
-                          color: Colors.grey[100],
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-                gridData: const FlGridData(show: false),
               ),
+              Row(
+                children: List.generate(2, (index) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentPage == index
+                          ? const Color(0xFF73D1F6)
+                          : Colors.grey[300],
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            height: 200,
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              children: [
+                SwingPhaseHistogram(sessions: widget.sessions),
+                StancePhaseHistogram(sessions: widget.sessions),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  String _getChartTitle(int page) {
+    switch (page) {
+      case 0:
+        return 'Swing Phase';
+      case 1:
+        return 'Stance Percentage';
+      default:
+        return 'Chart';
+    }
+  }
+}
+
+class SwingPhaseHistogram extends StatelessWidget {
+  final List<SessionData> sessions;
+
+  const SwingPhaseHistogram({super.key, required this.sessions});
+
+  @override
+  Widget build(BuildContext context) {
+    final swingData = sessions.map((s) {
+      final gaitData = _createGaitDataFromSession(s);
+      return gaitData.swingPercentage;
+    }).toList();
+
+    final barGroups = swingData.asMap().entries.map((entry) {
+      return BarChartGroupData(
+        x: entry.key,
+        barRods: [
+          BarChartRodData(
+            toY: entry.value,
+            color: const Color(0xFF73D1F6),
+            width: 18,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ],
+      );
+    }).toList();
+
+    return BarChart(
+      BarChartData(
+        minY: 0,
+        maxY: 105,
+        alignment: BarChartAlignment.spaceAround,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 20, // ✅ aligns grid with Y-axis labels
+          getDrawingHorizontalLine: (value) {
+            return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+          },
+        ),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 20,
+              reservedSize: 35,
+              getTitlesWidget: (value, meta) {
+                if (value % 10 == 0) {
+                  return Text(
+                    '${value.toInt()}%',
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < sessions.length) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'S${index + 1}',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+              reservedSize: 30,
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        barGroups: barGroups,
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            getTooltipColor: (group) => const Color.fromRGBO(17, 75, 95, 1),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final session = sessions[group.x.toInt()];
+              return BarTooltipItem(
+                'Session ${session.sessionNumber}\nSwing: ${rod.toY.toStringAsFixed(1)}%',
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  GaitPhaseData _createGaitDataFromSession(SessionData session) {
+    final double cadence = session.steps / (session.timeTaken / 60.0);
+    double swingPercentage = 35.0 + (session.speed - 1.0) * 10.0;
+    swingPercentage = swingPercentage.clamp(30.0, 50.0);
+    double stancePercentage = 100.0 - swingPercentage;
+
+    return GaitPhaseData(
+      stancePercentage: stancePercentage,
+      swingPercentage: swingPercentage,
+      cadence: cadence,
+    );
+  }
+}
+
+class StancePhaseHistogram extends StatelessWidget {
+  final List<SessionData> sessions;
+
+  const StancePhaseHistogram({super.key, required this.sessions});
+
+  @override
+  Widget build(BuildContext context) {
+    final stanceData = sessions.map((s) {
+      final gaitData = _createGaitDataFromSession(s);
+      return gaitData.stancePercentage;
+    }).toList();
+
+    final barGroups = stanceData.asMap().entries.map((entry) {
+      return BarChartGroupData(
+        x: entry.key,
+        barRods: [
+          BarChartRodData(
+            toY: entry.value,
+            color: const Color.fromRGBO(17, 75, 95, 1), // darker teal
+            width: 18,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ],
+      );
+    }).toList();
+
+    return BarChart(
+      BarChartData(
+        minY: 0,
+        maxY: 105,
+        alignment: BarChartAlignment.spaceAround,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 20,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+          },
+        ),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 20,
+              reservedSize: 35,
+              getTitlesWidget: (value, meta) {
+                if (value % 10 == 0) {
+                  return Text(
+                    '${value.toInt()}%',
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < sessions.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'S${index + 1}',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+              reservedSize: 30,
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        barGroups: barGroups,
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            fitInsideVertically: true,
+            fitInsideHorizontally: true,
+            getTooltipColor: (group) => const Color(0xFF73D1F6),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final session = sessions[group.x.toInt()];
+              return BarTooltipItem(
+                'Session ${session.sessionNumber}\nStance: ${rod.toY.toStringAsFixed(1)}%',
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  GaitPhaseData _createGaitDataFromSession(SessionData session) {
+    final double cadence = session.steps / (session.timeTaken / 60.0);
+    double swingPercentage = 35.0 + (session.speed - 1.0) * 10.0;
+    swingPercentage = swingPercentage.clamp(30.0, 50.0);
+    double stancePercentage = 100.0 - swingPercentage;
+
+    return GaitPhaseData(
+      stancePercentage: stancePercentage,
+      swingPercentage: swingPercentage,
+      cadence: cadence,
     );
   }
 }

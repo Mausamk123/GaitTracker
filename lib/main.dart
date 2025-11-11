@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:gait_tracker/edit_profile_screen.dart';
 import 'package:gait_tracker/patient_list_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
@@ -430,7 +431,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               if (_importedFiles.isNotEmpty) ...[
                 Text(
                   'Imported Files',
@@ -730,7 +731,14 @@ class ImportedFileCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: onEdit,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(onSave: (p0) {}),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.edit, color: Color(0xFF73D1F6)),
                 tooltip: 'Edit',
               ),

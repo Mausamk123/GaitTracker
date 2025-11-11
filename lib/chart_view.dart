@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path/path.dart' as path;
+import 'package:google_fonts/google_fonts.dart';
 
 /// Simple data holder for gait phase percentages
 class GaitPhaseData {
@@ -24,14 +25,28 @@ class ChartView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String baseName = path.basename(file.path);
+    final RegExp re = RegExp(r'Session\s*([0-9]+)', caseSensitive: false);
+    String titleText;
+    final match = re.firstMatch(baseName);
+    if (match != null && match.groupCount >= 1) {
+      titleText = 'Session ${match.group(1)}';
+    } else {
+      // Fallback: try to get number before underscore e.g., Session5_2024-01-01.txt
+      final RegExp reAlt = RegExp(r'Session[_\- ]?(\d+)', caseSensitive: false);
+      final alt = reAlt.firstMatch(baseName);
+      titleText = alt != null ? 'Session ${alt.group(1)}' : 'Session';
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          path.basename(file.path),
-          style: const TextStyle(
+          titleText,
+          style: GoogleFonts.secularOne(
             color: Colors.black,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w400,
+            fontSize: 24,
           ),
         ),
         backgroundColor: const Color.fromRGBO(115, 209, 246, 0.53),
@@ -42,6 +57,7 @@ class ChartView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 24),
               // Place the pie chart in the same visual position as gait_details.dart
               Center(
                 child: SizedBox(
@@ -55,29 +71,25 @@ class ChartView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildLegendItem('Stance Phase', const Color(0xFF1E3A8A)),
-                  const SizedBox(width: 24),
                   _buildLegendItem('Swing Phase', const Color(0xFF73D1F6)),
+                  const SizedBox(width: 24),
+                  _buildLegendItem('Stance Phase', const Color(0xFF1E3A8A)),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 64),
               // Cadence Section
-              Column(
-                children: [
-                  const Text(
-                    'Cadence',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${data.cadence.toStringAsFixed(2)} steps/min',
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                ],
+              const Text(
+                'Cadence',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${data.cadence.toStringAsFixed(2)} steps/min',
+                style: const TextStyle(fontSize: 18, color: Colors.black87),
               ),
             ],
           ),

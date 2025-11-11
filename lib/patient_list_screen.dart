@@ -12,14 +12,8 @@ class PatientListScreen extends StatefulWidget {
 
 class _PatientListScreenState extends State<PatientListScreen> {
   final List<Patient> _patients = List<Patient>.generate(
-    7,
-    (index) => const Patient(
-      name: 'Dhwani Joshi',
-      age: 20,
-      id: '402348',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=256&q=80&auto=format&fit=crop&ixlib=rb-4.0.3',
-    ),
+    4,
+    (index) => const Patient(name: 'Dhwani Joshi', age: 20, id: '402348'),
   );
 
   @override
@@ -82,7 +76,7 @@ class PatientCard extends StatelessWidget {
     return Container(
       // height: 100,
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 241, 241, 241),
+        color: const Color.fromARGB(255, 247, 252, 254),
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
@@ -93,75 +87,78 @@ class PatientCard extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.all(9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              patient.avatarUrl,
-              width: 64,
-              height: 64,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  patient.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image removed per requirement
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    patient.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 9),
-                Text(
-                  'Age: ${patient.age}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-                ),
-                Text(
-                  'ID: ${patient.id}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 206, 206, 206),
-              foregroundColor: Colors.black,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                  // const SizedBox(height: 9),
+                  Text(
+                    'Age: ${patient.age}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'ID: ${patient.id}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              textStyle: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            onPressed: onViewDetails,
-            child: const Text('View Details'),
-          ),
-        ],
+            SizedBox(
+              width: 130,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(17, 75, 95, 1),
+                  foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                onPressed: onViewDetails,
+                child: const Text(
+                  'View Details',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class Patient {
-  const Patient({
-    required this.name,
-    required this.age,
-    required this.id,
-    required this.avatarUrl,
-  });
+  const Patient({required this.name, required this.age, required this.id});
 
   final String name;
   final int age;
   final String id;
-  final String avatarUrl;
 }

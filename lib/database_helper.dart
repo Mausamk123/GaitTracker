@@ -199,6 +199,29 @@ class DatabaseHelper {
     );
   }
 
+  Future<int> deletePatientById(int id) async {
+    final db = await database;
+    return await db.delete('patients', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deletePatientByFilePath(String filePath) async {
+    final db = await database;
+    return await db.delete(
+      'patients',
+      where: 'filePath = ?',
+      whereArgs: [filePath],
+    );
+  }
+
+  Future<int> deletePatientByFileName(String fileName) async {
+    final db = await database;
+    return await db.delete(
+      'patients',
+      where: 'fileName = ?',
+      whereArgs: [fileName],
+    );
+  }
+
   // Helper method to validate and format date
   String? _formatDateForDB(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return null;
@@ -213,15 +236,15 @@ class DatabaseHelper {
           final day = int.parse(parts[0]);
           final month = int.parse(parts[1]);
           final year = int.parse(parts[2]);
-          
+
           // Validate ranges
           if (year < 1900 || year > 2100) throw FormatException('Invalid year');
           if (month < 1 || month > 12) throw FormatException('Invalid month');
           if (day < 1 || day > 31) throw FormatException('Invalid day');
-          
+
           // Create date - DateTime constructor will validate valid day for month
           date = DateTime(year, month, day);
-          
+
           // If we got here, it's a valid date
         }
       } else if (dateStr.contains('-')) {
@@ -230,11 +253,11 @@ class DatabaseHelper {
       } else {
         throw FormatException('Invalid date format');
       }
-      
+
       if (date == null) {
         throw FormatException('Could not parse date');
       }
-      
+
       // Additional validation for reasonable date ranges
       final now = DateTime.now();
       if (date.isAfter(now)) {
@@ -243,11 +266,10 @@ class DatabaseHelper {
       if (date.isBefore(DateTime(1900))) {
         throw FormatException('Date cannot be before year 1900');
       }
-      
     } catch (e) {
       throw FormatException(
         'Invalid date format. Please use dd/mm/yyyy or yyyy-MM-dd format.\n'
-        'Example: 31/12/2025 or 2025-12-31'
+        'Example: 31/12/2025 or 2025-12-31',
       );
     }
 
@@ -257,7 +279,7 @@ class DatabaseHelper {
 
   Future<void> upsertPatientWithFile(Map<String, dynamic> patient) async {
     final db = await database;
-        
+
     // Always require filePath for new entries
     if (!patient.containsKey('filePath') || patient['filePath'] == null) {
       throw ArgumentError('filePath is required for patient records');
@@ -266,7 +288,9 @@ class DatabaseHelper {
     // Format date of injury if present
     if (patient.containsKey('date_of_injury')) {
       try {
-        patient['date_of_injury'] = _formatDateForDB(patient['date_of_injury'] as String?);
+        patient['date_of_injury'] = _formatDateForDB(
+          patient['date_of_injury'] as String?,
+        );
       } catch (e) {
         throw ArgumentError('Invalid date_of_injury: ${e.toString()}');
       }
