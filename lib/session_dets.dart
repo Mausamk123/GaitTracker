@@ -5,6 +5,28 @@ import 'package:fl_chart/fl_chart.dart';
 import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 
+enum SubjectType { patient, healthy }
+
+class SessionData {
+  final int sessionNumber;
+  final String date;
+  final double speed;
+  final int steps;
+  final int timeTaken; // in minutes
+  final String fileName;
+  final SubjectType subjectType;
+
+  SessionData({
+    required this.sessionNumber,
+    required this.date,
+    required this.speed,
+    required this.steps,
+    required this.timeTaken,
+    required this.fileName,
+    required this.subjectType,
+  });
+}
+
 class SessionDetailsScreen extends StatefulWidget {
   const SessionDetailsScreen({super.key});
 
@@ -23,6 +45,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 100,
       timeTaken: 30,
       fileName: 'Session1_20-09-2003.txt',
+      subjectType: SubjectType.patient,
     ),
     SessionData(
       sessionNumber: 2,
@@ -31,6 +54,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 150,
       timeTaken: 35,
       fileName: 'Session2_20-10-2003.txt',
+      subjectType: SubjectType.patient,
     ),
     SessionData(
       sessionNumber: 3,
@@ -39,6 +63,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 130,
       timeTaken: 32,
       fileName: 'Session3_20-11-2003.txt',
+      subjectType: SubjectType.patient,
     ),
     SessionData(
       sessionNumber: 4,
@@ -47,6 +72,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 180,
       timeTaken: 40,
       fileName: 'Session4_20-12-2003.txt',
+      subjectType: SubjectType.healthy,
     ),
     SessionData(
       sessionNumber: 5,
@@ -55,6 +81,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 160,
       timeTaken: 38,
       fileName: 'Session5_21-01-2004.txt',
+      subjectType: SubjectType.healthy,
     ),
     SessionData(
       sessionNumber: 6,
@@ -63,6 +90,7 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
       steps: 200,
       timeTaken: 45,
       fileName: 'Session6_21-02-2004.txt',
+      subjectType: SubjectType.healthy,
     ),
   ];
 
@@ -120,142 +148,245 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
           child: Column(
             children: [
               SwipeableCharts(sessions: _sessions),
-              // Action Buttons
-              const SizedBox(height: 10),
-              Row(
+              const SizedBox(height: 14),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 3.5,
                 children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Starting data collection...'),
+                  // Start Data Collection
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Starting data collection...'),
+                          contentPadding: EdgeInsets.fromLTRB(30, 30, 30, 0),
+                          alignment: Alignment.center,
+                          content: Text(
+                            'Starting Data Collection in the device.',
+                            style: TextStyle(fontSize: 16),
                           ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(17, 75, 95, 1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 2),
+                          const Flexible(
+                            child: Text(
+                              'Start data collection',
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Add New Session
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Adding New Session...'),
+                          contentPadding: EdgeInsets.fromLTRB(30, 30, 30, 0),
+                          alignment: Alignment.center,
+                          content: Text(
+                            'Adding new session in the device.',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
                           color: const Color.fromRGBO(17, 75, 95, 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        height: 60,
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 5),
-                            const Flexible(
-                              child: Text(
-                                'Start data collection',
-                                softWrap: true,
-                                overflow: TextOverflow.visible,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Add New Session...')),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: const Color.fromRGBO(17, 75, 95, 1),
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.add,
+                            color: Color.fromRGBO(17, 75, 95, 1),
+                            size: 20,
                           ),
-                        ),
-                        height: 60,
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.add,
-                              color: Color.fromRGBO(17, 75, 95, 1),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 5),
-                            const Flexible(
-                              child: Text(
-                                'Add New Session',
-                                softWrap: true,
-                                overflow: TextOverflow.visible,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color.fromRGBO(17, 75, 95, 1),
-                                ),
+                          const SizedBox(width: 8),
+                          const Flexible(
+                            child: Text(
+                              'Add New Session',
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromRGBO(17, 75, 95, 1),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Importing Data...')),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF73D1F6)),
-                        ),
-                        height: 60,
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.download,
-                              color: Color(0xFF73D1F6),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            const Flexible(
-                              child: Text(
-                                'Import Data',
-                                softWrap: true,
-                                overflow: TextOverflow.visible,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF73D1F6),
-                                ),
-                              ),
+                  // Import Data
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Importing Data...'),
+                          contentPadding: EdgeInsets.fromLTRB(30, 30, 30, 0),
+                          alignment: Alignment.center,
+                          content: Text(
+                            'Data being imported in your device. Please wait for some time.',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('OK'),
                             ),
                           ],
                         ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF73D1F6)),
+                      ),
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.download,
+                            color: Color(0xFF73D1F6),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Flexible(
+                            child: Text(
+                              'Import Data',
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF73D1F6),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // End This Session
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Session Ended'),
+                          contentPadding: EdgeInsets.fromLTRB(30, 30, 30, 0),
+                          alignment: Alignment.center,
+                          content: Text(
+                            'The session has been ended.',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Color.fromARGB(255, 236, 66, 66),
+                        ),
+                      ),
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.stop_circle,
+                            color: Color.fromARGB(255, 236, 66, 66),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Flexible(
+                            child: Text(
+                              'End This Session',
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromARGB(255, 236, 66, 66),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
-              // Session List Section
-              const SizedBox(height: 10),
+              const SizedBox(height: 18),
               Expanded(
                 child: ListView.builder(
                   itemCount: _sessions.length,
@@ -314,30 +445,13 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 14),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-class SessionData {
-  final int sessionNumber;
-  final String date;
-  final double speed;
-  final int steps;
-  final int timeTaken; // in minutes
-  final String fileName;
-
-  SessionData({
-    required this.sessionNumber,
-    required this.date,
-    required this.speed,
-    required this.steps,
-    required this.timeTaken,
-    required this.fileName,
-  });
 }
 
 class SwipeableCharts extends StatefulWidget {

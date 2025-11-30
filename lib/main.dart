@@ -461,8 +461,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ],
+
               // Small debug marker to verify UI is rendering on device
               // Import Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoadingFiles ? null : () {},
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF73D1F6),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text('Connect My Device'),
+                ),
+              ),
+              // Imported Files Section
+              // Patients Section
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -487,8 +507,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              // Imported Files Section
-              // Patients Section
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
